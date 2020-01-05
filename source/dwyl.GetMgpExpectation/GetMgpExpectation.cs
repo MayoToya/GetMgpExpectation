@@ -1,8 +1,9 @@
-﻿using System;
+﻿using MicroBatchFramework;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using MicroBatchFramework;
+using System.Runtime.CompilerServices;
 
 namespace dwyl.GetMgpExpectation
 {
@@ -20,28 +21,25 @@ namespace dwyl.GetMgpExpectation
             return MgpDic[sum - 6];
         }
 
-        public static (int topRow, int middleRow, int bottomRow, int leftColumn, int middleColumn, int rightColumn, int downwardSloping, int upwardSloping) Calculate(this int[] array)
+        public static (int topRow, int middleRow, int bottomRow, int leftColumn, int middleColumn, int rightColumn, int downwardSloping, int upwardSloping) CalculateFromBytes(this byte[] array)
         {
-            if (array.Length != 9)
+            if (array.Length != 36)
             {
                 throw new InvalidDataException("not 9");
             }
 
-            static int Sum(ReadOnlySpan<int> values)
-            {
-                var result = 0;
-
-                foreach (var x in values)
-                {
-                    result += x;
-                }
-
-                return result;
-            }
-
-            return (Sum(array[..3]).ToMgp(), Sum(array[3..6]).ToMgp(), Sum(array[6..9]).ToMgp(), (array[0] + array[3] + array[6]).ToMgp(), (array[1] + array[4] + array[7]).ToMgp(), (array[2] + array[5] + array[8]).ToMgp(), (array[0] + array[4] + array[8]).ToMgp(), (array[2] + array[4] + array[6]).ToMgp());
+            return (
+                (array[0 * 4] + array[1 * 4] + array[2 * 4]).ToMgp(),
+                (array[3 * 4] + array[4 * 4] + array[5 * 4]).ToMgp(),
+                (array[6 * 4] + array[7 * 4] + array[8 * 4]).ToMgp(),
+                (array[0 * 4] + array[3 * 4] + array[6 * 4]).ToMgp(),
+                (array[1 * 4] + array[4 * 4] + array[7 * 4]).ToMgp(),
+                (array[2 * 4] + array[5 * 4] + array[8 * 4]).ToMgp(),
+                (array[0 * 4] + array[4 * 4] + array[8 * 4]).ToMgp(),
+                (array[2 * 4] + array[4 * 4] + array[6 * 4]).ToMgp()
+                );
         }
-
+        
         public static IEnumerable<KeyValuePair<string, double>> ToKeyValuePairs(this (int topRow, int middleRow, int bottomRow, int leftColumn, int middleColumn, int rightColumn, int downwardSloping, int upwardSloping)[] resultsOfCalculations)
         {
             yield return new KeyValuePair<string, double>("Top Row", resultsOfCalculations.Select(x => x.topRow).Sum() / 120.0);
@@ -77,12 +75,11 @@ namespace dwyl.GetMgpExpectation
                         throw new InvalidDataException();
                     }
 
-                    var (intArrayFromInput, hiddenNumbers) = ParseInput(numbers);
+                    var (intArrayFromInput, hiddenNumbers, hiddenNumbersPositions) = ParseInputForUnsafe(numbers);
 
                     var resultsOfCalculations =
                         GetPermutationEnumerable(hiddenNumbers)
-                        .AsParallel()
-                        .Select(x => GetValidArray(intArrayFromInput, x).Calculate())
+                        .Select(x => GetValidArrayUsingUnsafeClass(intArrayFromInput, x, hiddenNumbersPositions).CalculateFromBytes())
                         .ToArray()
                         .ToKeyValuePairs()
                         .ToArray();
@@ -107,50 +104,52 @@ namespace dwyl.GetMgpExpectation
             Console.WriteLine("bye");
         }
 
-
-
-        private static (int[], int[] hiddenNumbers) ParseInput(ReadOnlySpan<char> span)
+        private static (int[], int[] hiddenNumbers, int[] hiddenNumbersPositions) ParseInputForUnsafe(ReadOnlySpan<char> span)
         {
             var oneToNine = new[] { 1, 2, 3, 4, 5, 6, 7, 8, 9 };
             var array = new int[9];
+            var hiddenNumbersPositions = new int[5];
             var counter = 0;
+            var hiddenNumberCounter = 0;
 
             foreach (var c in span)
             {
+
                 if (c < 48 || 57 < c)
                 {
                     throw new InvalidDataException();
                 }
 
-                array[counter] = c - 48;
+                if (c == 48)
+                {
+                    hiddenNumbersPositions[hiddenNumberCounter] = counter;
+                    hiddenNumberCounter++;
+                }
+                else
+                {
+                    array[counter] = c - 48;
+                }
+
                 counter++;
             }
 
-            return (array, oneToNine.Except(array).ToArray());
+            return (array, oneToNine.Except(array).ToArray(), hiddenNumbersPositions);
         }
-
-        private static int[] GetValidArray(in Span<int> value, in Span<int> correction)
+        
+        private static byte[] GetValidArrayUsingUnsafeClass(int[] value, in Span<int> correction, in Span<int> hiddenNumbersPositions)
         {
             if (value.Length != 9 || correction.Length != 5)
             {
                 throw new InvalidDataException();
             }
 
-            var counter = 0;
-            var array = new int[9];
+            var array = new byte[36];
+            ref var b = ref Unsafe.As<int[], byte[]>(ref value);
+            Unsafe.CopyBlock(ref array[0], ref b[0], 36);
 
-            for (var i = 0; i < 9; i++)
+            for (var i = 0; i < correction.Length; i++)
             {
-
-                if (value[i] != 0)
-                {
-                    array[i] = value[i];
-                }
-                else
-                {
-                    array[i] = correction[counter];
-                    counter++;
-                }
+                array[hiddenNumbersPositions[i] * 4] = (byte)correction[i];
             }
 
             return array;
