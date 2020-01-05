@@ -1,0 +1,22 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.29503.13
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "dwyl.GetMgpExpectation.Benchmark", "dwyl.GetMgpExpectation.Benchmark\dwyl.GetMgpExpectation.Benchmark.csproj", "{EE9A9D11-4B1E-4505-B769-35452A5E2D86}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{EE9A9D11-4B1E-4505-B769-35452A5E2D86}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EE9A9D11-4B1E-4505-B769-35452A5E2D86}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {91533118-BAC1-47CC-BE9B-2EC5078D4EEF}
+	EndGlobalSection
+EndGlobal
