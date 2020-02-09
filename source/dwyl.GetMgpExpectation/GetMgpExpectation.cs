@@ -1,4 +1,4 @@
-﻿using MicroBatchFramework;
+﻿using ConsoleAppFramework;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -53,7 +53,7 @@ namespace dwyl.GetMgpExpectation
         }
     }
 
-    public class GetMgpExpectation : BatchBase
+    public class GetMgpExpectation : ConsoleAppBase
     {
         public void Calculate()
         {

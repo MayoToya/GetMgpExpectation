@@ -6,7 +6,7 @@ namespace dwyl.GetMgpExpectation.Benchmark
     {
         public static void Main()
         {
-            var summary = BenchmarkRunner.Run<Benchmark_2019_11_09>();
+            var summary = BenchmarkRunner.Run<Benchmark_2020_01_20>();
         }
     }
 }

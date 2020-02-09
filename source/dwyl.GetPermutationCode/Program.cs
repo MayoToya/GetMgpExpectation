@@ -28,6 +28,16 @@ namespace dwyl.GetPermutationCode
         {
             var array = intEnumerable.ToArray();
 
+            static IEnumerable<int> FirstAndArray(int first, IEnumerable<int> array)
+            {
+                yield return first;
+
+                foreach (var number in array)
+                {
+                    yield return number;
+                }
+            }
+
             switch (array.Length)
             {
                 case 0:
@@ -43,12 +53,9 @@ namespace dwyl.GetPermutationCode
                 default:
                     foreach (var number in array)
                     {
-                        var first = new[] { number };
-                        var children = GetPermutationEnumerable(array.Except(first));
-
-                        foreach (var child in children)
+                        foreach (var child in GetPermutationEnumerable(array.Where(x => x != number)))
                         {
-                            yield return first.Concat(child);
+                            yield return  FirstAndArray(number, child);
                         }
                     }
                     break;
